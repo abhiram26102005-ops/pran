@@ -30,7 +30,12 @@ load_dotenv()
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev-secret-key")
-app.config["UPLOAD_FOLDER"] = os.path.join(app.static_folder, "uploads")
+DEFAULT_UPLOAD_FOLDER = (
+    os.path.join(tempfile.gettempdir(), "finance_tracker_uploads")
+    if os.getenv("VERCEL")
+    else os.path.join(app.static_folder, "uploads")
+)
+app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER") or DEFAULT_UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 JWT_SECRET = os.getenv("JWT_SECRET", app.config["SECRET_KEY"])
 DB_DRIVER = os.getenv("DB_DRIVER", "mysql").lower()
