@@ -22,6 +22,7 @@ from flask import (
     session,
     url_for,
 )
+from openpyxl import Workbook, load_workbook
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -59,6 +60,8 @@ CATEGORIES = [
     "Salary",
     "Other",
 ]
+
+EXCEL_COLUMNS = ["title", "amount", "category", "type", "transaction_date", "notes"]
 
 
 class DatabaseUnavailable(RuntimeError):
@@ -278,6 +281,63 @@ def validate_csrf():
         flash("Security token expired. Please try again.", "danger")
         return False
     return True
+
+
+def parse_transaction_date(value):
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if value is None:
+        return None
+    value = str(value).strip()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y"):
+        try:
+            return datetime.strptime(value, fmt).date().isoformat()
+        except ValueError:
+            continue
+    return None
+
+
+def import_transactions_from_excel(file_storage, user_id):
+    file_storage.stream.seek(0)
+    workbook = load_workbook(file_storage.stream, data_only=True)
+    sheet = workbook.active
+    headers = [str(cell.value or "").strip().lower() for cell in sheet[1]]
+    missing = [column for column in EXCEL_COLUMNS[:-1] if column not in headers]
+    if missing:
+        return 0, [f"Missing required columns: {', '.join(missing)}"]
+
+    positions = {name: headers.index(name) for name in headers if name}
+    imported = 0
+    errors = []
+    for row_number, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        if not any(row):
+            continue
+        title = str(row[positions["title"]] or "").strip()
+        amount_raw = row[positions["amount"]]
+        category = str(row[positions["category"]] or "").strip().title()
+        tx_type = str(row[positions["type"]] or "").strip().title()
+        tx_date = parse_transaction_date(row[positions["transaction_date"]])
+        notes = str(row[positions.get("notes", -1)] or "").strip() if "notes" in positions else ""
+
+        try:
+            amount = float(amount_raw)
+        except (TypeError, ValueError):
+            amount = 0
+
+        if not title or amount <= 0 or category not in CATEGORIES or tx_type not in ("Income", "Expense") or not tx_date:
+            errors.append(f"Row {row_number}: check title, amount, category, type, and date.")
+            continue
+
+        query(
+            """INSERT INTO transactions (user_id, title, amount, category, type, notes, transaction_date)
+               VALUES (%s,%s,%s,%s,%s,%s,%s)""",
+            (user_id, title, amount, category, tx_type, notes, tx_date),
+            commit=True,
+        )
+        imported += 1
+    return imported, errors
 
 
 def month_window():
@@ -558,6 +618,54 @@ def budget():
 def reports():
     period = request.args.get("period", "monthly")
     return render_template("reports.html", period=period)
+
+
+@app.route("/transactions/import", methods=["POST"])
+@login_required
+def import_transactions():
+    if not validate_csrf():
+        return redirect(url_for("reports"))
+    upload = request.files.get("transaction_file")
+    if not upload or not upload.filename:
+        flash("Please choose an Excel file to upload.", "warning")
+        return redirect(url_for("reports"))
+    if not upload.filename.lower().endswith(".xlsx"):
+        flash("Upload an .xlsx Excel file using the sample format.", "danger")
+        return redirect(url_for("reports"))
+
+    imported, errors = import_transactions_from_excel(upload, current_user()["id"])
+    if imported:
+        dashboard_data(current_user()["id"])
+        flash(f"Imported {imported} transactions from Excel.", "success")
+    if errors:
+        preview = " ".join(errors[:3])
+        extra = f" {len(errors) - 3} more rows skipped." if len(errors) > 3 else ""
+        flash(preview + extra, "warning")
+    if not imported and not errors:
+        flash("No transaction rows were found in the Excel file.", "warning")
+    return redirect(url_for("reports", period="monthly"))
+
+
+@app.route("/sample/transactions.xlsx")
+@login_required
+def sample_transactions_excel():
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Transactions"
+    sheet.append(EXCEL_COLUMNS)
+    sheet.append(["Groceries", 340.25, "Food", "Expense", date.today().replace(day=3).isoformat(), "Weekly grocery run"])
+    sheet.append(["Monthly Salary", 4200, "Salary", "Income", date.today().replace(day=1).isoformat(), "Primary job"])
+    sheet.append(["Metro Card", 65, "Transportation", "Expense", date.today().replace(day=5).isoformat(), "Commute pass"])
+    for column in ("A", "B", "C", "D", "E", "F"):
+        sheet.column_dimensions[column].width = 22
+    out = io.BytesIO()
+    workbook.save(out)
+    out.seek(0)
+    return Response(
+        out.getvalue(),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=transaction-upload-sample.xlsx"},
+    )
 
 
 @app.route("/profile", methods=["GET", "POST"])

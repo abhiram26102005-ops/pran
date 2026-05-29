@@ -4,6 +4,41 @@
 <form class="panel glass mb-4"><div class="btn-group flex-wrap" role="group">
   {% for p in ['daily','weekly','monthly','yearly'] %}<input class="btn-check" type="radio" name="period" id="{{ p }}" value="{{ p }}" {% if period==p %}checked{% endif %} onchange="this.form.submit()"><label class="btn btn-outline-primary" for="{{ p }}">{{ p.title() }}</label>{% endfor %}
 </div></form>
+<div class="content-grid mb-4">
+  <section class="panel glass">
+    <h2>Report Factors</h2>
+    <div class="factor-list">
+      <span>Date range: daily, weekly, monthly, yearly</span>
+      <span>Transaction type: income vs expense</span>
+      <span>Expense category: Food, Shopping, Salary, and more</span>
+      <span>Budget use: spending compared with monthly budget</span>
+      <span>Trends: totals grouped by selected period</span>
+    </div>
+  </section>
+  <section class="panel glass">
+    <h2>Upload Monthly Transactions</h2>
+    <form method="post" action="{{ url_for('import_transactions') }}" enctype="multipart/form-data" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="col-12"><input class="form-control" type="file" name="transaction_file" accept=".xlsx" required></div>
+      <div class="col-12 d-flex gap-2 flex-wrap">
+        <button class="btn btn-primary"><i class="bi bi-upload"></i> Upload & Analyze</button>
+        <a class="btn btn-outline-primary" href="{{ url_for('sample_transactions_excel') }}"><i class="bi bi-file-earmark-spreadsheet"></i> Sample Excel</a>
+      </div>
+    </form>
+  </section>
+</div>
+<section class="panel glass mb-4">
+  <h2>Excel Row Format</h2>
+  <div class="table-responsive">
+    <table class="table align-middle sample-table">
+      <thead><tr><th>title</th><th>amount</th><th>category</th><th>type</th><th>transaction_date</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td>Groceries</td><td>340.25</td><td>Food</td><td>Expense</td><td>2026-05-03</td><td>Weekly grocery run</td></tr>
+        <tr><td>Monthly Salary</td><td>4200</td><td>Salary</td><td>Income</td><td>2026-05-01</td><td>Primary job</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 <div class="content-grid">
   <section class="panel glass"><h2>Spending Trends</h2><canvas id="trendChart" data-period="{{ period }}"></canvas></section>
   <section class="panel glass"><h2>Category-wise Analysis</h2><canvas id="reportCategoryChart"></canvas></section>

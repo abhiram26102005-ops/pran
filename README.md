@@ -11,6 +11,7 @@ A modern Flask, MySQL, Bootstrap 5, and Chart.js web app for tracking income, ex
 - Monthly budget create, edit, delete, and color-coded progress alerts
 - Automatic alerts at 80%, 100%, and exceeded budget thresholds
 - Daily, weekly, monthly, and yearly report filters
+- Excel upload for monthly transaction analysis
 - PDF and Excel-compatible CSV exports
 - Profile editing with password update and profile photo upload
 - Responsive mobile-first glassmorphism UI with sidebar navigation and dark/light mode
@@ -103,8 +104,31 @@ GOOGLE_CLIENT_SECRET=your-client-secret
 
 - `GET /api/dashboard` returns chart data for dashboard category and monthly expense charts.
 - `GET /api/reports?period=daily|weekly|monthly|yearly` returns spending trends and category analytics.
+- `POST /transactions/import` uploads an `.xlsx` transaction file and adds valid rows for report analysis.
+- `GET /sample/transactions.xlsx` downloads the Excel upload template.
 - `GET /export/pdf` downloads a PDF report.
 - `GET /export/excel` downloads an Excel-compatible CSV report.
+
+## Report Factors
+
+Reports are generated from transaction date, amount, category, type, and the selected filter period. The dashboard and report charts compare income vs expense, category-wise spending, monthly spending trend, and budget usage.
+
+## Excel Upload Format
+
+Upload `.xlsx` files with these columns in the first row:
+
+```text
+title | amount | category | type | transaction_date | notes
+```
+
+Example:
+
+```text
+Groceries | 340.25 | Food | Expense | 2026-05-03 | Weekly grocery run
+Monthly Salary | 4200 | Salary | Income | 2026-05-01 | Primary job
+```
+
+Allowed categories are `Food`, `Transportation`, `Shopping`, `Education`, `Healthcare`, `Entertainment`, `Salary`, and `Other`. Type must be `Income` or `Expense`.
 
 ## Main Routes
 
