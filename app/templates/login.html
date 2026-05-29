@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card glass">
+  <h1>Welcome back</h1>
+  <form method="post" class="needs-validation" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label class="form-label">Email</label><input class="form-control" type="email" name="email" required>
+    <label class="form-label mt-3">Password</label><input class="form-control" type="password" name="password" required>
+    <button class="btn btn-primary w-100 mt-4">Login</button>
+  </form>
+  <div class="auth-divider"><span>or</span></div>
+  <a class="btn btn-google w-100 {% if not google_login_enabled %}disabled{% endif %}" href="{{ url_for('google_login') }}">
+    <i class="bi bi-google"></i> Continue with Google
+  </a>
+  {% if not google_login_enabled %}
+    <small class="text-muted d-block mt-2">Add Google OAuth credentials in `.env` to enable this button.</small>
+  {% endif %}
+  <p class="mt-3 mb-0">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+</div>
+{% endblock %}

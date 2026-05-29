@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <nav class="landing-nav">
+    <a class="brand" href="{{ url_for('landing') }}"><span>SB</span> SmartBudget</a>
+    <div>
+      <a class="btn btn-outline-primary" href="{{ url_for('login') }}">Login</a>
+      <a class="btn btn-primary" href="{{ url_for('register') }}">Get Started</a>
+    </div>
+  </nav>
+  <div class="hero-grid">
+    <div>
+      <h1>Take Control of Your Finances with Smart Budget Tracking</h1>
+      <p>Track income, monitor expenses, forecast spending, and receive budget alerts before small decisions become expensive surprises.</p>
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}">Get Started</a>
+        <a class="btn btn-light btn-lg" href="{{ url_for('login') }}">Login</a>
+      </div>
+    </div>
+    <div class="hero-panel glass">
+      <div class="mini-stat"><span>Monthly Savings</span><strong>$1,240</strong></div>
+      <div class="hero-bars"><span></span><span></span><span></span><span></span></div>
+      <div class="alert alert-warning mb-0">Warning! You have used 80% of your budget.</div>
+    </div>
+  </div>
+</section>
+<section class="section-grid">
+  <div>
+    <h2>Built for everyday money decisions</h2>
+    <p>Students, employees, families, and small business owners can manage budgets, transactions, analytics, alerts, and exports from one responsive workspace.</p>
+  </div>
+  <div class="feature-grid">
+    <article class="glass"><i class="bi bi-shield-check"></i><h3>Secure by design</h3><p>Hashed passwords, JWT sessions, CSRF checks, and parameterized SQL.</p></article>
+    <article class="glass"><i class="bi bi-bell"></i><h3>Budget alerts</h3><p>Popup and dashboard alerts at 80%, 100%, and over-budget thresholds.</p></article>
+    <article class="glass"><i class="bi bi-graph-up-arrow"></i><h3>Smart insights</h3><p>Spending prediction, savings suggestions, and category recommendations.</p></article>
+    <article class="glass"><i class="bi bi-file-earmark-arrow-down"></i><h3>Reports</h3><p>Filter analytics by day, week, month, or year and export PDF or CSV.</p></article>
+  </div>
+</section>
+{% endblock %}

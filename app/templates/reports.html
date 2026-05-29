@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><h1>Reports & Analytics</h1><div class="d-flex gap-2"><a class="btn btn-outline-primary" href="{{ url_for('export_report', kind='pdf') }}">PDF Report</a><a class="btn btn-primary" href="{{ url_for('export_report', kind='excel') }}">Excel Report</a></div></div>
+<form class="panel glass mb-4"><div class="btn-group flex-wrap" role="group">
+  {% for p in ['daily','weekly','monthly','yearly'] %}<input class="btn-check" type="radio" name="period" id="{{ p }}" value="{{ p }}" {% if period==p %}checked{% endif %} onchange="this.form.submit()"><label class="btn btn-outline-primary" for="{{ p }}">{{ p.title() }}</label>{% endfor %}
+</div></form>
+<div class="content-grid">
+  <section class="panel glass"><h2>Spending Trends</h2><canvas id="trendChart" data-period="{{ period }}"></canvas></section>
+  <section class="panel glass"><h2>Category-wise Analysis</h2><canvas id="reportCategoryChart"></canvas></section>
+  <section class="panel glass full"><h2>Income vs Expense Comparison</h2><canvas id="incomeExpenseChart"></canvas></section>
+</div>
+{% endblock %}

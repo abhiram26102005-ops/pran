@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-heading"><h1>Add Transaction</h1></div>
+<div class="content-grid">
+  <section class="panel glass">
+    <form method="post" class="row g-3 needs-validation" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="col-md-6"><label class="form-label">Transaction Title</label><input class="form-control" name="title" required></div>
+      <div class="col-md-6"><label class="form-label">Amount</label><input class="form-control" type="number" min="0.01" step="0.01" name="amount" required></div>
+      <div class="col-md-6"><label class="form-label">Category</label><select class="form-select" name="category" required>{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><label class="form-label">Type</label><select class="form-select" name="type"><option>Expense</option><option>Income</option></select></div>
+      <div class="col-md-6"><label class="form-label">Date</label><input class="form-control" type="date" name="transaction_date" required></div>
+      <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="3"></textarea></div>
+      <div class="col-12 d-flex gap-2"><button class="btn btn-primary">Save Transaction</button><button type="reset" class="btn btn-outline-secondary">Reset</button></div>
+    </form>
+  </section>
+  <section class="panel glass">
+    <h2>Search Transactions</h2>
+    <form class="row g-2 mb-3">
+      <div class="col-12"><input class="form-control" name="search" placeholder="Search title or notes" value="{{ request.args.get('search','') }}"></div>
+      <div class="col-md-6"><select class="form-select" name="category"><option value="">All categories</option>{% for c in categories %}<option {% if request.args.get('category')==c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+      <div class="col-md-6"><select class="form-select" name="type"><option value="">All types</option><option>Income</option><option>Expense</option></select></div>
+      <div class="col-12"><button class="btn btn-outline-primary w-100">Filter Transactions</button></div>
+    </form>
+    <div class="table-responsive"><table class="table"><tbody>{% for tx in transactions %}<tr><td>{{ tx.transaction_date }}</td><td>{{ tx.title }}</td><td>{{ tx.category }}</td><td>${{ tx.amount }}</td></tr>{% endfor %}</tbody></table></div>
+  </section>
+</div>
+{% endblock %}

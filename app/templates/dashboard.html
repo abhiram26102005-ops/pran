@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+{% if data.alert %}
+<div class="alert budget-alert alert-{{ 'danger' if data.alert.type in ['danger','critical'] else 'warning' }}" data-popup="{{ data.alert.message }}">
+  {{ data.alert.message }} <strong>{{ data.alert.used }}% used</strong>
+</div>
+{% endif %}
+<div class="page-heading"><h1>Dashboard</h1><a class="btn btn-primary" href="{{ url_for('transactions') }}"><i class="bi bi-plus-lg"></i> Add Transaction</a></div>
+<div class="stat-grid">
+  <div class="stat glass"><span>Total Income</span><strong>${{ '%.2f'|format(data.income) }}</strong></div>
+  <div class="stat glass"><span>Total Expenses</span><strong>${{ '%.2f'|format(data.expenses) }}</strong></div>
+  <div class="stat glass"><span>Remaining Balance</span><strong>${{ '%.2f'|format(data.balance) }}</strong></div>
+  <div class="stat glass"><span>Monthly Budget</span><strong>${{ '%.2f'|format(data.budget) }}</strong></div>
+</div>
+<div class="content-grid">
+  <section class="panel glass"><h2>Expense Category Pie Chart</h2><canvas id="categoryChart"></canvas></section>
+  <section class="panel glass"><h2>Monthly Expense Bar Chart</h2><canvas id="monthlyChart"></canvas></section>
+</div>
+<div class="content-grid mt-4">
+  <section class="panel glass">
+    <h2>Recent Transactions</h2>
+    <div class="table-responsive"><table class="table align-middle">
+      <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Type</th></tr></thead>
+      <tbody>{% for tx in data.recent %}<tr><td>{{ tx.transaction_date }}</td><td>{{ tx.category }}</td><td>${{ tx.amount }}</td><td><span class="badge text-bg-{{ 'success' if tx.type == 'Income' else 'danger' }}">{{ tx.type }}</span></td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  <section class="panel glass">
+    <h2>Notification Center</h2>
+    {% for alert in alerts %}<div class="notification {{ alert.alert_type }}">{{ alert.message }}<small>{{ alert.created_at }}</small></div>{% else %}<p class="text-muted">No alerts yet.</p>{% endfor %}
+  </section>
+</div>
+<section class="panel glass mt-4">
+  <h2>AI Spending Prediction & Smart Suggestions</h2>
+  <div class="insight-grid">
+    <div><span>Predicted Monthly Spend</span><strong>${{ '%.2f'|format(data.insights.predicted_spend) }}</strong></div>
+    <div><span>Expense Recommendation</span><p>{{ data.insights.recommendation }}</p></div>
+    <div><span>Smart Savings Suggestion</span><p>{{ data.insights.savings }}</p></div>
+  </div>
+</section>
+{% endblock %}
